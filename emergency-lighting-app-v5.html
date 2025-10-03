@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emergency Lighting — V5</title>
+  <meta name="theme-color" content="#0ea5e9">
+  <style>
+    :root{
+      --bg: #0b1014;
+      --bg-soft: #0e151b;
+      --card:#0f1b22;
+      --muted:#91a4b2;
+      --text:#e6f0f7;
+      --accent:#10b981; /* green */
+      --accent-2:#0ea5e9; /* blue */
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --border:#19303a;
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 600px at 20% -10%, #0d1a20 0%, #0b1014 40%) fixed;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .app{max-width: 980px; margin: 0 auto; padding: 16px 16px 90px; display:flex; flex-direction:column; gap:14px; min-height:100dvh}
+    header{
+      position: sticky; top: 0; z-index: 5; padding: 10px 0 4px;
+      background: linear-gradient(180deg, rgba(11,16,20,.95) 0%, rgba(11,16,20,.75) 60%, rgba(11,16,20,0) 100%);
+      backdrop-filter: blur(6px);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .logo{
+      width:44px;height:44px;border-radius:12px;
+      background: conic-gradient(from 200deg at 60% 40%, #13c69b, #0ea5e9, #13c69b);
+      box-shadow: var(--shadow); display:grid; place-items:center; font-weight:900; color:#04251e;
+    }
+    h1{margin:0;font-size:1.25rem;letter-spacing:.2px}
+    .sub{color:var(--muted);font-size:.9rem}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    button{
+      appearance:none;
+      border:1px solid var(--border);
+      background:#0c161b;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      transition: transform .05s ease, background .2s ease, border-color .2s ease;
+    }
+    button:active{ transform: translateY(1px) }
+    .btn{background:linear-gradient(180deg, var(--accent), #129778); color:#062d23; border:none; font-weight:800}
+    .btn-blue{background:linear-gradient(180deg, var(--accent-2), #0a7db1); color:#00121b; border:none; font-weight:800}
+    .btn-warn{background:linear-gradient(180deg, var(--warn), #b76a07); color:#1a0f00; border:none; font-weight:800}
+    .btn-danger{background:linear-gradient(180deg, var(--danger), #b91c1c); color:#fff; border:none; font-weight:800}
+    .btn-ghost{background:transparent}
+    .chip{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:#0c161b; color:var(--muted); font-size:.9rem}
+    .card{
+      background: linear-gradient(180deg, #0f1b22, #0b1217);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    input, textarea, select{
+      width:100%; border:1px solid var(--border); background:#0b1418; color:var(--text);
+      padding:12px; border-radius:14px; font-size:16px;
+    }
+    textarea{min-height:70px}
+    .grid{display:grid;gap:10px}
+    @media(min-width:640px){ .grid-2{grid-template-columns:1fr 1fr} .grid-3{grid-template-columns:repeat(3,1fr)} }
+    .row{
+      display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:center;
+      padding:10px; border:1px solid var(--border); border-radius:14px; background:#0b1418;
+      animation: fadeIn .25s ease;
+    }
+    .row strong{font-size:1rem}
+    .row small{color:var(--muted)}
+    .row-actions{display:flex;gap:8px}
+    .k{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:.78rem}
+    .k.bulkhead{color:#a5b4fc;border-color:#495a9c}
+    .k.exit{color:#fbbf24;border-color:#7a5a0a}
+    .k.spot{color:#34d399;border-color:#1b6a56}
+    .k.panel{color:#60a5fa;border-color:#2a527d}
+    .k.hblade{color:#f472b6;border-color:#813860}
+    .section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+    /* Tabs */
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#0b1418;color:var(--text);cursor:pointer;transition:background .2s ease}
+    .tab.active{background:linear-gradient(180deg, var(--accent-2), #0a7db1); color:#00121b; border-color:#0b3b52}
+    .section{display:none; animation: slideIn .25s ease}
+    .section.active{display:block}
+    /* Collapsible blocks */
+    details{border:1px dashed #183039; border-radius:12px; padding:8px 10px; background:#0b1418}
+    details > summary{cursor:pointer; list-style:none}
+    details > summary::-webkit-details-marker{display:none}
+    details[open]{animation: fadeIn .25s ease}
+    /* Thumbs */
+    .thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .thumb{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#0b1418}
+    .thumb img{width:100%;display:block;aspect-ratio:1/1;object-fit:cover}
+    /* Quick actions bottom bar */
+    .fabbar{
+      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+      display:flex; gap:10px; padding:8px; border-radius:999px; background: rgba(11,16,20,.65);
+      border:1px solid var(--border); backdrop-filter: blur(8px); box-shadow: var(--shadow); z-index: 6;
+    }
+    .fabbar button{padding:10px 14px}
+    .fade-enter{opacity:0; transform: translateY(6px)}
+    .fade-enter-active{opacity:1; transform:none; transition:opacity .2s, transform .2s}
+    @keyframes fadeIn{from{opacity:0; transform: translateY(4px)} to{opacity:1; transform:none}}
+    @keyframes slideIn{from{opacity:0; transform: translateY(6px)} to{opacity:1; transform:none}}
+    .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#00151b;border:1px solid #0b3342;color:#b2ebff;padding:10px 14px;border-radius:12px;opacity:0;transition:.2s;z-index:7}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">💡</div>
+      <div>
+        <h1>Emergency Lighting</h1>
+        <div class="sub">Failures • Materials • Investigations</div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="copyAllBtn" class="btn-warn">📋 Copy Full Report</button>
+      <button id="copyFailuresBtn" class="btn-ghost">📋 Failures</button>
+      <button id="copyMatLabBtn" class="btn-ghost">📋 Materials & Labour</button>
+      <button id="exportBtn" class="btn-ghost">⬇️ Export</button>
+      <button id="importBtn" class="btn-ghost">⬆️ Import</button>
+      <input id="importFile" type="file" accept="application/json" hidden />
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-target="#failures">Failures</button>
+    <button class="tab" data-target="#materials">Materials</button>
+    <button class="tab" data-target="#investigations">Investigations</button>
+    <button class="tab" data-target="#photos">Photos</button>
+  </div>
+
+  <!-- Failures -->
+  <section id="failures" class="section active card grid">
+    <div class="section-title">
+      <div class="chip">Add a failure with location, type, and optional notes.</div>
+      <button id="copyFailuresBtn2" class="btn-ghost">📋 Copy</button>
+    </div>
+    <div class="grid grid-2">
+      <input id="locationInput" placeholder="Failure location (e.g., Stairwell 2 – 1st Floor)" />
+      <select id="typeInput">
+        <option value="" disabled selected>Light type…</option>
+        <option>Bulkhead</option>
+        <option>Exit Box</option>
+        <option>Spot</option>
+        <option>Panel</option>
+        <option>Hanging blade</option>
+      </select>
+    </div>
+    <textarea id="notesInput" placeholder="Notes (optional)"></textarea>
+    <div class="stack">
+      <button id="addBtn" class="btn">➕ Add Failure</button>
+      <button id="clearBtn" class="btn-danger">🗑️ Clear All</button>
+    </div>
+    <div>
+      <h3 style="margin:10px 0 8px">Recorded Failures</h3>
+      <div id="list"></div>
+    </div>
+  </section>
+
+  <!-- Materials (Parts + Other + Labour) -->
+  <section id="materials" class="section card">
+    <div class="section-title">
+      <h3 style="margin:0">Materials</h3>
+      <div class="stack" style="flex:0 0 auto;width:auto">
+        <button id="copyMatLabBtn2" class="btn-ghost">📋 Copy</button>
+        <button id="clearPartsBtn" class="btn-ghost">🧹 Clear</button>
+      </div>
+    </div>
+    <div id="partsWrap" class="grid" style="margin-top:6px"></div>
+
+    <details style="margin-top:12px" open>
+      <summary><strong>Other Material</strong> <span class="sub">— Free-text items</span></summary>
+      <div class="grid grid-3" style="margin-top:10px">
+        <input id="otherDesc" placeholder="Description (e.g., Cable, Trunking, Fixings)" />
+        <input id="otherQty" type="number" min="0" placeholder="Qty" />
+        <button id="addOtherBtn" class="btn-blue" style="width:100%">Add Other</button>
+      </div>
+      <div id="otherList" class="grid" style="margin-top:8px"></div>
+    </details>
+
+    <details style="margin-top:12px" open>
+      <summary><strong>Labour</strong> <span class="sub">— Electricians & time</span></summary>
+      <div class="grid grid-3" style="margin-top:10px">
+        <input id="labourElectricians" type="number" min="0" placeholder="No. of electricians" />
+        <input id="labourHours" type="number" min="0" step="0.25" placeholder="Hours" />
+        <button id="saveLabourBtn" class="btn-blue" style="width:100%">Save Labour</button>
+      </div>
+      <div id="labourSummary" class="sub" style="margin-top:6px"></div>
+    </details>
+  </section>
+
+  <!-- Investigations -->
+  <section id="investigations" class="section card grid">
+    <div class="section-title">
+      <h3 style="margin:0">Investigations</h3>
+      <button id="copyInvBtn" class="btn-ghost">📋 Copy</button>
+    </div>
+    <div class="grid grid-2">
+      <input id="invLocation" placeholder="Investigation location/area" />
+      <input id="invDetails" placeholder="What needs investigating?" />
+    </div>
+    <div class="stack">
+      <button id="addInvBtn" class="btn">➕ Add Investigation</button>
+      <button id="clearInvBtn" class="btn-danger">🗑️ Clear All</button>
+    </div>
+    <div>
+      <h3 style="margin:10px 0 8px">Investigation List</h3>
+      <div id="invList"></div>
+    </div>
+  </section>
+
+  <!-- Photos (not in report) -->
+  <section id="photos" class="section card">
+    <div class="section-title">
+      <h3 style="margin:0">Photos (not included in report)</h3>
+      <div class="stack" style="flex:0 0 auto;width:auto">
+        <button id="cameraBtn" class="btn-blue">📷 Take Photo</button>
+        <button id="clearPhotosBtn" class="btn-ghost">🧹 Clear</button>
+      </div>
+    </div>
+    <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden />
+    <div id="thumbs" class="thumbs" style="margin-top:10px"></div>
+    <div class="sub" style="margin-top:8px">iPhone: image may open in a new tab—use Share → Save Image. Android/Chrome: download or save from viewer.</div>
+  </section>
+
+  <!-- Quick actions bar -->
+  <div class="fabbar">
+    <button id="qaAddFail" class="btn">➕ Failure</button>
+    <button id="qaAddMat" class="btn-blue">➕ Material</button>
+    <button id="qaAddInv" class="btn">➕ Investigation</button>
+    <button id="qaPhoto" class="btn-ghost">📷 Photo</button>
+  </div>
+
+  <div id="toast" class="toast"></div>
+</div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const $$=s=>Array.from(document.querySelectorAll(s));
+  const LS_KEY='el_v5_styled_polished';
+
+  const ARROW_OPTIONS=['Up','Down','Left','Right','Left/Down','Right/Down'];
+
+  const PARTS=[
+    {id:'3mBH', name:'3mBH'},
+    {id:'vtac503', name:'V-Tac VT-503 3W Led Emergency Downlight 5500K with white bezel'},
+    {id:'liteplan', name:'Lite Plan - S/HJT/3/3W'},
+    {id:'kni35', name:'Knightsbridge 3.5W LED Maintained / Non Maintained Emergency Downlight White 3000'},
+    {id:'jccpanel', name:'JCC Skytile IP65 33W 600mm x 600mm LED Panel 4000K'},
+    {id:'jccremote', name:'JCC Emergency Remote Pack'},
+    {id:'bladelight', name:'Lightsafe 2.5W LED Multifunction Bladelight with Auto Self Test', arrow:true},
+    {id:'exitbox', name:'Maintained exit box', arrow:true},
+    {id:'emlkey', name:'EML Test Key'},
+    {id:'yolk', name:'Yolk'},
+    {id:'faceplate', name:'Face plate'},
+    {id:'backbox1g', name:'1G Back Box'}
+  ];
+
+  const state={
+    items:[],          // failures: {id,loc,type,notes,ts}
+    parts:{},          // {partId:{qty:number, arrow?:string}}
+    other:[],          // [{id, desc, qty}]
+    labour:{electricians:0, hours:0},
+    investigations:[]  // {id, location, details, ts}
+  };
+
+  function init(){
+    // Load
+    try{const raw=localStorage.getItem(LS_KEY); if(raw){const saved=JSON.parse(raw)||{}; Object.assign(state, {items:saved.items||[], parts:saved.parts||{}, other:saved.other||[], labour:saved.labour||{electricians:0,hours:0}, investigations:saved.investigations||[]});}}catch(e){}
+    // Tabs
+    $$('.tab').forEach(t=>t.addEventListener('click',()=>{ $$('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); $$('.section').forEach(s=>s.classList.remove('active')); $(t.dataset.target).classList.add('active'); window.scrollTo({top:0, behavior:'smooth'}); }));
+    // Failures
+    $('#addBtn').onclick=onAddFailure;
+    $('#clearBtn').onclick=()=>{ if(confirm('Clear all failures?')){ state.items=[]; persist(); renderFailures(); } };
+    // Materials
+    $('#clearPartsBtn').onclick=()=>{ state.parts={}; state.other=[]; persist(); renderParts(); renderOther(); };
+    $('#addOtherBtn').onclick=addOther;
+    $('#saveLabourBtn').onclick=saveLabour;
+    // Investigations
+    $('#addInvBtn').onclick=onAddInvestigation;
+    $('#clearInvBtn').onclick=()=>{ if(confirm('Clear all investigations?')){ state.investigations=[]; persist(); renderInvestigations(); } };
+    // Photos
+    $('#cameraBtn').onclick=()=>$('#cameraInput').click();
+    $('#cameraInput').onchange=onCapture;
+    $('#clearPhotosBtn').onclick=()=>$('#thumbs').innerHTML='';
+    // Report & IO
+    $('#copyAllBtn').onclick=()=>copyText(buildFullReport());
+    $('#copyFailuresBtn').onclick=()=>copyText(buildFailuresReport());
+    $('#copyFailuresBtn2').onclick=()=>copyText(buildFailuresReport());
+    $('#copyMatLabBtn').onclick=()=>copyText(buildMaterialsLabourReport());
+    $('#copyMatLabBtn2').onclick=()=>copyText(buildMaterialsLabourReport());
+    $('#copyInvBtn').onclick=()=>copyText(buildInvestigationReport());
+    $('#exportBtn').onclick=doExport;
+    $('#importBtn').onclick=()=>$('input#importFile').click();
+    $('#importFile').onchange=doImport;
+
+    // Quick actions
+    $('#qaAddFail').onclick=()=>{ $('.tab[data-target="#failures"]').click(); setTimeout(()=>$('#locationInput').focus(), 50); };
+    $('#qaAddMat').onclick=()=>{ $('.tab[data-target="#materials"]').click(); };
+    $('#qaAddInv').onclick=()=>{ $('.tab[data-target="#investigations"]').click(); setTimeout(()=>$('#invLocation').focus(), 50); };
+    $('#qaPhoto').onclick=()=>{ $('.tab[data-target="#photos"]').click(); setTimeout(()=>$('#cameraBtn').click(), 80); };
+
+    // Render
+    renderFailures();
+    renderParts();
+    renderOther();
+    renderLabourSummary();
+    renderInvestigations();
+  }
+
+  function persist(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+  function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1500);}
+  function btn(label, cls, fn){ const b=document.createElement('button'); b.className=cls; b.textContent=label; b.onclick=fn; return b; }
+
+  // Failures
+  function onAddFailure(){
+    const loc=$('#locationInput').value.trim();
+    const type=$('#typeInput').value;
+    const notes=$('#notesInput').value.trim();
+    if(!loc) return toast('Enter a location');
+    if(!type) return toast('Select a light type');
+    state.items.push({id:crypto.randomUUID(),loc,type,notes,ts:Date.now()});
+    $('#locationInput').value=''; $('#typeInput').selectedIndex=0; $('#notesInput').value='';
+    persist(); renderFailures();
+  }
+  function typeTag(t){
+    const cls = t==='Bulkhead' ? 'bulkhead' : t==='Exit Box' ? 'exit' : t==='Spot' ? 'spot' : t==='Panel' ? 'panel' : 'hblade';
+    return `<span class="k ${cls}">${t}</span>`;
+  }
+  function renderFailures(){
+    const list=$('#list'); list.innerHTML='';
+    if(state.items.length===0){ list.innerHTML='<div class="sub">No failures yet.</div>'; return; }
+    state.items.forEach((it,i)=>{
+      const row=document.createElement('div'); row.className='row';
+      row.innerHTML=`<div><strong>${i+1}. ${typeTag(it.type)} — ${it.loc}</strong><br><small>${new Date(it.ts).toLocaleString()}${it.notes?(' — '+it.notes):''}</small></div>`;
+      const del=btn('🗑️','btn-danger',()=>{ state.items=state.items.filter(x=>x.id!==it.id); persist(); renderFailures(); });
+      row.appendChild(del); list.appendChild(row);
+    });
+  }
+
+  // Parts / Materials
+  function renderParts(){
+    const wrap=$('#partsWrap'); wrap.innerHTML='';
+    PARTS.forEach(p=>{
+      const card=document.createElement('div'); card.className='row'; card.style.background='#0b1418';
+      const left=document.createElement('div');
+      left.innerHTML=`<div style="font-weight:700">${p.name}</div>`;
+
+      let arrowSel=null;
+      if(p.arrow){
+        const arrowWrap=document.createElement('div'); arrowWrap.style.marginTop='6px';
+        arrowSel=document.createElement('select');
+        arrowSel.innerHTML='<option value="">Arrow Direction…</option>' + ARROW_OPTIONS.map(a=>`<option>${a}</option>`).join('');
+        arrowSel.value = state.parts[p.id]?.arrow || '';
+        arrowSel.onchange = ()=>{ ensurePart(p.id); state.parts[p.id].arrow = arrowSel.value; persist(); };
+        arrowWrap.appendChild(arrowSel);
+        left.appendChild(arrowWrap);
+      }
+
+      const right=document.createElement('div'); right.className='row-actions';
+      const minus=btn('−','btn-ghost',()=>adjustQty(p.id,-1,input,arrowSel));
+      const input=document.createElement('input'); input.type='number'; input.min='0'; input.value=state.parts[p.id]?.qty||0; input.style.width='90px'; input.onchange=()=>setQty(p.id, Number(input.value||0), arrowSel);
+      const plus=btn('+','btn-ghost',()=>adjustQty(p.id,1,input,arrowSel));
+      right.appendChild(minus); right.appendChild(input); right.appendChild(plus);
+
+      card.appendChild(left); card.appendChild(right);
+      wrap.appendChild(card);
+
+      if(p.arrow && arrowSel){
+        const q = state.parts[p.id]?.qty || 0;
+        arrowSel.disabled = q===0;
+      }
+    });
+  }
+  function ensurePart(id){ if(!state.parts[id]) state.parts[id]={qty:0}; }
+  function setQty(id,qty,arrowSel){
+    ensurePart(id); state.parts[id].qty=Math.max(0,Math.floor(qty||0));
+    if(state.parts[id].qty===0){
+      if(state.parts[id].arrow) delete state.parts[id].arrow;
+      delete state.parts[id];
+    }
+    if(arrowSel){ arrowSel.disabled = !(state.parts[id] && state.parts[id].qty>0); }
+    persist();
+  }
+  function adjustQty(id,delta,input,arrowSel){
+    const q=(state.parts[id]?.qty||0)+delta;
+    setQty(id,q,arrowSel);
+    input.value=state.parts[id]?.qty||0;
+  }
+
+  // Other Material
+  function addOther(){
+    const desc=$('#otherDesc').value.trim();
+    const qty=Number($('#otherQty').value||0);
+    if(!desc) return toast('Enter description for Other');
+    if(qty<=0) return toast('Enter a valid quantity');
+    state.other.push({id:crypto.randomUUID(), desc, qty});
+    $('#otherDesc').value=''; $('#otherQty').value='';
+    persist(); renderOther();
+  }
+  function renderOther(){
+    const wrap=$('#otherList'); wrap.innerHTML='';
+    if(state.other.length===0){ wrap.innerHTML='<div class="sub">No other materials added.</div>'; return; }
+    state.other.forEach((o,i)=>{
+      const row=document.createElement('div'); row.className='row';
+      row.innerHTML=`<div><strong>${i+1}. ${o.qty} × ${o.desc}</strong></div>`;
+      const del=btn('🗑️','btn-danger',()=>{ state.other=state.other.filter(x=>x.id!==o.id); persist(); renderOther(); });
+      row.appendChild(del); wrap.appendChild(row);
+    });
+  }
+
+  // Labour
+  function saveLabour(){
+    const e = Number($('#labourElectricians').value || 0);
+    const h = Number($('#labourHours').value || 0);
+    state.labour.electricians = Math.max(0, Math.floor(e));
+    state.labour.hours = Math.max(0, Number.isFinite(h)? h : 0);
+    persist(); renderLabourSummary();
+    toast('Labour saved');
+  }
+  function renderLabourSummary(){
+    const {electricians, hours} = state.labour;
+    $('#labourSummary').textContent = electricians||hours ? `${electricians} electrician(s) for ${hours} hour(s)` : 'No labour recorded.';
+  }
+
+  // Investigations
+  function onAddInvestigation(){
+    const loc=$('#invLocation').value.trim();
+    const details=$('#invDetails').value.trim();
+    if(!loc) return toast('Enter investigation location');
+    if(!details) return toast('Enter what needs investigating');
+    state.investigations.push({id:crypto.randomUUID(), location:loc, details, ts:Date.now()});
+    $('#invLocation').value=''; $('#invDetails').value='';
+    persist(); renderInvestigations();
+  }
+  function renderInvestigations(){
+    const list=$('#invList'); list.innerHTML='';
+    if(state.investigations.length===0){ list.innerHTML='<div class="sub">No investigations logged.</div>'; return; }
+    state.investigations.forEach((it,i)=>{
+      const row=document.createElement('div'); row.className='row';
+      const del=btn('🗑️','btn-danger',()=>{ state.investigations=state.investigations.filter(x=>x.id!==it.id); persist(); renderInvestigations(); });
+      row.innerHTML=`<div><strong>${i+1}. ${it.location}</strong><br><small>${new Date(it.ts).toLocaleString()} — ${it.details}</small></div>`;
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+
+  // Photos
+  function onCapture(e){
+    const f=e.target.files[0]; if(!f) return;
+    const url=URL.createObjectURL(f);
+    const item=document.createElement('div'); item.className='thumb';
+    const img=document.createElement('img'); img.src=url;
+    const a=document.createElement('a'); a.href=url; a.download=`el-photo-${new Date().toISOString().replace(/[:.]/g,'-')}.jpg`; a.className='btn-ghost'; a.style='display:block;text-align:center;padding:6px;border-top:1px dashed #1f3a3a';
+    a.textContent='Save';
+    item.appendChild(img); item.appendChild(a);
+    $('#thumbs').prepend(item);
+    e.target.value='';
+  }
+
+  // Report builders
+  function buildFailuresReport(){
+    let out="Attended site and conducted a 180 minute drain down test. All fittings returned to normal operation upon completion.\n\n";
+    out+=`Total Failures: ${state.items.length}\n`;
+    out+="The following fittings failed and require replacement.\n\n";
+    state.items.forEach((it,i)=>{ out+=`${i+1}. [${it.type}] – ${it.loc}${it.notes?(' — '+it.notes):''}\n`; });
+    return out.trim();
+  }
+  function buildMaterialsLabourReport(){
+    const materialLines=[];
+    Object.entries(state.parts).forEach(([id,info])=>{
+      const p=PARTS.find(x=>x.id===id);
+      if(!p || !info.qty) return;
+      const extra = (p.arrow && info.arrow) ? ` (Arrow: ${info.arrow})` : '';
+      materialLines.push(`${info.qty} × ${p.name}${extra}`);
+    });
+    state.other.forEach(o=>{ materialLines.push(`${o.qty} × ${o.desc}`); });
+    let out='';
+    if(materialLines.length){ out += `Materials Required:\n` + materialLines.join('\n'); }
+    const lab = (state.labour.electricians || state.labour.hours) ? `Labour:\n${state.labour.electricians} electrician(s) for ${state.labour.hours} hour(s)` : '';
+    if(lab){ out += (out ? '\n\n' : '') + lab; }
+    if(!out) out = 'No materials or labour recorded.';
+    return out;
+  }
+  function buildInvestigationReport(){
+    if(!state.investigations.length) return 'No investigations recorded.';
+    let out = 'Investigation:\n';
+    state.investigations.forEach((it,i)=>{ out += `${i+1}. ${it.location} — ${it.details}\n`; });
+    return out.trim();
+  }
+  function buildFullReport(){
+    let out = buildFailuresReport();
+    const matLab = buildMaterialsLabourReport();
+    if(matLab && !/^No materials/.test(matLab)){ out += `\n\n${matLab}`; }
+    if(state.investigations.length){
+      out += `\n\n${buildInvestigationReport()}`;
+    }
+    return out;
+  }
+  function copyText(text){
+    navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard'));
+  }
+
+  // Export/Import
+  function doExport(){
+    const blob=new Blob([JSON.stringify(state)],{type:'application/json'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download='el-v5-data.json'; a.click(); URL.revokeObjectURL(url);
+  }
+  async function doImport(e){
+    const f=e.target.files[0]; if(!f) return;
+    const txt=await f.text(); const data=JSON.parse(txt)||{};
+    state.items = Array.isArray(data.items) ? data.items : [];
+    state.parts = (data.parts && typeof data.parts==='object') ? data.parts : {};
+    state.other = Array.isArray(data.other) ? data.other : [];
+    state.labour = (data.labour && typeof data.labour==='object') ? data.labour : {electricians:0,hours:0};
+    state.investigations = Array.isArray(data.investigations) ? data.investigations : [];
+    persist(); renderFailures(); renderParts(); renderOther(); renderLabourSummary(); renderInvestigations(); e.target.value='';
+  }
+
+  // Start
+  init();
+})();
+</script>
+</body>
+</html>
